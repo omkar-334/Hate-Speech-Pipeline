@@ -1,0 +1,6 @@
+openai-whisper
+openai
+pandas
+requests
+yt-dlp
+git+https://github.com/m-bain/whisperx.git
