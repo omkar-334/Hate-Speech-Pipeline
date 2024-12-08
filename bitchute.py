@@ -9,7 +9,7 @@ def search(
     query: str,
     sensitivity: Literal["normal", "nsfw", "nsfl"],
     num: int = 100,
-    minutes: int = 5,
+    minutes: int = 2,
 ):
     url = "https://api.bitchute.com/api/beta/search/videos"
     payload = {
@@ -22,7 +22,10 @@ def search(
 
     response = requests.post(url, json=payload)
     videos = response.json()["videos"]
-    df = pd.DataFrame(videos)[["video_name", "duration", "video_id"]]
+    cols = ["video_name", "duration", "video_id"]
+    if not videos:
+        return pd.DataFrame(columns=cols)
+    df = pd.DataFrame(videos)[cols]
     df["duration"] = df["duration"].apply(normalize_duration)
     df["duration"] = pd.to_timedelta(df["duration"])
     df = df[df["duration"] < pd.Timedelta(minutes=minutes + 1)]
@@ -32,7 +35,7 @@ def search(
     return df
 
 
-def search_all(query: str, num: int = 100, minutes: int = 5, nsfl=False):
+def search_all(query: str, num: int = 100, minutes: int = 2, nsfl=False):
     dfs = [
         search(query, "normal", num, minutes),
         search(query, "nsfw", num, minutes),
@@ -45,7 +48,7 @@ def search_all(query: str, num: int = 100, minutes: int = 5, nsfl=False):
 
 def download(url):
     id = url.split("/")[-1].split(".")[0]
-    path = f"/content/videos/{id}.mp3"
+    path = f"videos/{id}.mp3"
     ydl_opts = {
         "format": "bestaudio/best",
         "postprocessors": [
